@@ -3,6 +3,9 @@ import Checkbox from '../../checkbox';
 
 export default {
     props: {
+        allColumns: {
+            type: Array
+        },
         columns: {
             type: Array
         },
@@ -18,19 +21,83 @@ export default {
     methods: {
         onChange(e) {
             this.$emit('changeCheckboxAll', e.target.checked);
+        },
+        convertToRows(originColumns) {
+            let maxLevel = 1;
+            const traverse = (column, parent) => {
+                if (parent) {
+                    column.level = parent.level + 1;
+                    if (maxLevel < column.level) {
+                        maxLevel = column.level;
+                    }
+                }
+                if (column.children.length > 0) {
+                    let colSpan = 0;
+                    column.children.forEach((subColumn) => {
+                        traverse(subColumn, column);
+                        colSpan += subColumn.colSpan;
+                    });
+                    column.colSpan = colSpan;
+                }
+                else {
+                    column.colSpan = 1;
+                }
+            };
+
+            originColumns.forEach((column) => {
+                column.level = 1;
+                traverse(column);
+            });
+
+            const rows = [];
+            for (let i = 0; i < maxLevel; i++) {
+                rows.push([]);
+            }
+
+            const allColumns = this.getAllColumns(originColumns);
+
+            allColumns.forEach((column) => {
+                if (!column.children || column.children.length === 0) {
+                    column.rowSpan = maxLevel - column.level + 1;
+                }
+                else {
+                    column.rowSpan = 1;
+                }
+                rows[column.level - 1].push(column);
+            });
+
+            return rows;
+        },
+        getAllColumns(columns) {
+            const result = [];
+            columns.forEach((column) => {
+                if (column.children) {
+                    result.push(column);
+                    result.push.apply(result, this.getAllColumns(column.children));
+                }
+                else {
+                    result.push(column);
+                }
+            });
+            return result;
         }
     },
 
     render() {
+        const columnRows = this.convertToRows(this.allColumns);
         return (
             <thead>
-                <tr>
+            {
+                columnRows.map(columns =>
+                    <tr>
                     {
-                        this.columns.map(columnItem => {
+                        columns.map(columnItem => {
                             switch (columnItem.type) {
                                 case 'selection':
                                     return (
-                                        <th>
+                                        <th colspan={ columnItem.colSpan }
+                                        rowspan={ columnItem.rowSpan }
+                                        >
                                             <x-checkbox
                                                 indeterminate={this.selectedStatus === 'partial'}
                                                 value={this.selectedStatus === 'all'}
@@ -45,16 +112,20 @@ export default {
                                 case 'normal':
                                 default:
                                     return (
-                                        <th>
+                                        <th colspan={ columnItem.colSpan }
+                                        rowspan={ columnItem.rowSpan }
+                                        >
                                             {columnItem.title}
                                         </th>
                                     );
                             }
                         })
                     }
-                </tr>
+                    </tr>
+                )
+
+            }
             </thead>
         );
     }
-
 };

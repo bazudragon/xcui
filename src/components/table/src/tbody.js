@@ -4,6 +4,9 @@ export default {
         data: {
             type: Array
         },
+        allColumns: {
+            type: Array
+        },
         columns: {
             type: Array
         },
@@ -17,7 +20,6 @@ export default {
             type: [String, Number]
         }
     },
-
     methods: {
         onChangeCheckbox(value, e) {
             this.$emit('changeCheckbox', e.target.checked, value);
@@ -46,17 +48,32 @@ export default {
             else {
                 tdElem.removeAttribute('title');
             }
+        },
+        doFlattenColumns(allColumns) {
+            const result = [];
+            if (allColumns && allColumns.length > 0) {
+                allColumns.forEach((column) => {
+                    if (column.children && column.children.length > 0) {
+                        result.push.apply(result, this.doFlattenColumns(column.children));
+                    }
+                    else {
+                        result.push(column);
+                    }
+                });
+            }
+            return result;
         }
     },
 
     render() {
+        let dataColumns = this.doFlattenColumns(this.allColumns);
         return (
             <tbody>
                 {
                     this.data.map((dataItem, dataIndex) => (
                         <tr class={ [this.getRowClass(dataItem, dataIndex)] }>
                             {
-                                this.columns.map(columnItem => {
+                                dataColumns.map(columnItem => {
                                     let currentUniqueValue = dataItem[columnItem.prop];
                                     switch (columnItem.type) {
                                         case 'selection':

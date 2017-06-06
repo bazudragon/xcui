@@ -6,18 +6,18 @@
             }">
             <colgroup>
                 <col
-                    v-for="item in columns"
+                    v-for="item in allColumns"
                     :width="item.width"
                 >
             </colgroup>
             <x-thead
-                :columns="columns"
+                :all-columns="allColumns"
                 :selected-status="selectedStatus"
                 @changeCheckboxAll="onChangeCheckboxAll"
             />
             <x-tbody
                 :data="data"
-                :columns="columns"
+                :all-columns="allColumns"
                 :row-class-name="rowClassName"
                 :selected-value-list="selectedValueList"
                 :selected-value="selectedValue"
@@ -84,6 +84,7 @@
 
         data() {
             return {
+                allColumns: [],
                 columns: [],
                 rowKey: '',
                 tableWidth: null,
