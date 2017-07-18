@@ -1,4 +1,6 @@
-<template></template>
+<template>
+
+</template>
 
 <script>
 const SINGLE_LINE_CLASS_NAME = 'x-table-td-single-line';
@@ -70,6 +72,13 @@ export default {
                 : ({dataItem, columnItem}) => {
                     // 直接返回内容
                     return dataItem[columnItem.prop];
+                },
+            headerRender: slots['column-header-slot']
+                ? args => {
+                    return slots['column-header-slot'](args);
+                }
+                : () => {
+                    return this.title;
                 }
         };
         this.columnConfig = column;
