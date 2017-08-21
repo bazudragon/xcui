@@ -99,18 +99,21 @@ export default {
             window.requestAnimationFrame(moveAction);
             let start = 0;
             let duration = this.duration;
-            let begin = document.body.scrollTop;
+            //兼容标准模式与怪异模式
+            let begin = document.documentElement.scrollTop || document.body.scrollTop;
             function moveAction(timestamp) {
                 start++;
                 let locTop = Quad.easeOut(start, 0, road, duration);
                 let result = begin + locTop;
-                document.body.scrollTop = result;
-                if (start < duration) {
-                    window.requestAnimationFrame(moveAction);
-                }
-                else {
-                    me.$emit('finish');
-                }
+                me.$nextTick(()=>{
+                    document.documentElement.scrollTop = document.body.scrollTop = result;
+                    if (start < duration) {
+                        window.requestAnimationFrame(moveAction);
+                    }
+                    else {
+                        me.$emit('finish');
+                    }
+                })
             }
         }
     },
